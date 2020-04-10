@@ -1,0 +1,53 @@
+apply plugin: 'com.android.library'
+
+
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
+
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 28
+        versionCode 79
+        versionName '5.10.0'
+        buildConfigField "String", "GIT_REVISION", "\"${getGitVersion()}\""
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'src/main/AndroidManifest.xml'
+            java.srcDirs = ['src/main/java']
+            res.srcDirs = ['src/main/res','src/main/res']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+}
+
+project.afterEvaluate {
+    tasks.all { task ->
+        if (task.name =~ /generate.*BuildConfig/) {
+            task.dependsOn(propagateBuildConfig)
+        }
+    }
+}
+
+task propagateBuildConfig << {
+    project.android.buildTypes.all { type ->
+        type.debuggable = rootProject.ext.has("debugBuild") ? rootProject.ext.debugBuild : false
+    }
+}
+
+dependencies {
+    api fileTree(dir: 'libs', include: ['*.jar'])
+//    api project(':basesdk')
+//    api project(':plugins:ysf')
+    api ("androidx.legacy:legacy-support-v4:1.0.0")
+}
